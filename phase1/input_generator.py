@@ -35,8 +35,6 @@ def generate_input(size):
     home_numbers = np.arange(1,num_of_tas + 1 , 1)
     list_of_locations = ["location{0}".format(i+1) for i in range(size)]
     list_of_homes = [list_of_locations[np.random.randint(0,num_of_tas-1)] for i in range(num_of_tas)]
-    print(list_of_homes)
-    print(list_of_locations)
     adjmat = np.full((size,size),'x')
     for i in range(size):
         for j in range(i):
@@ -44,12 +42,16 @@ def generate_input(size):
             if (x != 0):
                 adjmat[i][j] = x
                 adjmat[j][i] = x
-    
     file = open('{0}.out'.format(size),"w")
     file.write("{0}\n".format(size))
     file.write("{0}\n".format(num_of_tas))
-
+    for i in range(size):
+        file.write("{0} ".format(list_of_locations[i])) 
     file.write("\n")
+    for i in range(num_of_tas):
+        file.write("{0} ".format(list_of_homes[i])) 
+    file.write("\n")
+    file.write("{0}\n".format(list_of_locations[0]))
     for i in range(size):
         for j in range(size):
             file.write("{0} ".format(str(adjmat[i][j])))
@@ -62,4 +64,5 @@ def set_edge():
     return np.random.randint(0,2)
 
 generate_input(50)
-
+generate_input(100)
+generate_input(200)
