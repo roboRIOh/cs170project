@@ -9,10 +9,10 @@ import networkx as nx
 # 5 Name of starting point
 # 6 Adjacency matrix
 
-def generate_input(size,x,y):
+def generate_input(size, x, y):
     num_of_tas = size // 2 #arbitrary number to be determined
     home_numbers = np.arange(1,num_of_tas + 1 , 1)
-    list_of_locations = ["location{0}".format(i+1) for i in range(size)]
+    list_of_locations = ["{0}".format(i+1) for i in range(size)]
     list_of_homes = []
     while(len(list_of_homes) < num_of_tas):
         home = list_of_locations[np.random.randint(0,num_of_tas)]
