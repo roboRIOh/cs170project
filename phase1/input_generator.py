@@ -9,28 +9,6 @@ import networkx as nx
 # 5 Name of starting point
 # 6 Adjacency matrix
 
-def print_input(locations, tas):
-    # Prints specifications to input files based on locations and number of tas
-
-    # Print line 1 and line 2 to file
-    # print(locations, file = open("50.in", "a"))
-    # print(tas, file = open("50.in", "a"))
-
-    generate_names(locations, tas)
-
-    # Generate random uniform x values for points.
-    dist_x_array = np.random.uniform(0, 10, locations)
-    # Generate random uniform y values for points.
-    dist_y_array = np.random.uniform(0, 10, locations)
-
-    print(dist_x_array)
-    print(dist_y_array)
-
-def generate_names(locations, tas):
-    # Print names of locations (line 3) and names of homes (line 4) to
-    # input file
-    return
-
 def generate_input(size,x,y):
     num_of_tas = size // 2 #arbitrary number to be determined
     home_numbers = np.arange(1,num_of_tas + 1 , 1)
@@ -52,15 +30,15 @@ def generate_input(size,x,y):
             if (triAdj[i,j] != 0):
                 adjmat[i][j] = x
                 adjmat[j][i] = x
-    
+
     file = open('{0}.in'.format(size),"w")
     file.write("{0}\n".format(size))
     file.write("{0}\n".format(num_of_tas))
     for i in range(size):
-        file.write("{0} ".format(list_of_locations[i])) 
+        file.write("{0} ".format(list_of_locations[i]))
     file.write("\n")
     for i in range(num_of_tas):
-        file.write("{0} ".format(list_of_homes[i])) 
+        file.write("{0} ".format(list_of_homes[i]))
     file.write("\n")
     file.write("{0}\n".format(list_of_locations[0]))
     for i in range(len(adjmat)):
@@ -70,7 +48,6 @@ def generate_input(size,x,y):
 
     file.close
 
-
 def set_edge():
     return np.random.randint(0,2)
 
@@ -78,7 +55,3 @@ def set_edge():
 generate_input(50,9,8)
 generate_input(100,19,8)
 generate_input(200,19,18)
-
-
-
-
