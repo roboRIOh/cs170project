@@ -49,20 +49,26 @@ def get_shortest_path(G, start_node, homes):
     print(path)
     return path
 
-def write_output_file(path, size):
+def write_output_file(path, size, origin):
+    homes = set(path)
+
     path_str_list = [str(p) for p in path]
     print(path_str_list)
     path_str = ' '.join(path_str_list)
     file = open(f'{size}.out',"w")
     file.write("{0}\n".format(path_str))
     print(path_str)
-    file.write("{0}\n".format(len(path) - 2))
-    for i in range(1, len(path) - 1):
-        drop_off = str(path_str_list[i])
-        file.write("{0} {0}\n".format(drop_off))
+    file.write("{0}\n".format(len(homes))
+
+    homes = set(path)
+    for h in homes:
+        if h != origin:
+            drop_off = str(h) + ' ' + str(h)
+            file.write("{0}\n".format(drop_off))
+
     file.close()
 
 for i in [50]:
     (G, homes, start_node) = create_graph(f'{i}.in')
     path = get_shortest_path(G, start_node, homes)
-    write_output_file(path, i)
+    write_output_file(path, i, start_node)
