@@ -40,6 +40,11 @@ def get_shortest_path(G, start_node, homes):
         temp_paths = []
         for h in homes:
             temp_paths.append(shortest_paths(G, start_node, h))
+        temp_paths.sort(key=len)
+
+        chosen_path = temp_paths[0]
+        print(chosen_path)
+
         path.extend(temp_paths[0][1:])
         destination = temp_paths[0][-1]
         homes.remove(destination)
@@ -49,26 +54,29 @@ def get_shortest_path(G, start_node, homes):
     print(path)
     return path
 
-def write_output_file(path, size, origin):
-    homes = set(path)
+def write_output_file(path, size, origin, list_of_homes):
+    checkpoints = set(path)
+    # print(list_of_homes)
 
     path_str_list = [str(p) for p in path]
-    print(path_str_list)
     path_str = ' '.join(path_str_list)
     file = open(f'{size}.out',"w")
     file.write("{0}\n".format(path_str))
-    print(path_str)
-    file.write("{0}\n".format(len(homes))
+    # print(path_str)
 
-    homes = set(path)
-    for h in homes:
-        if h != origin:
+    file.write("{0}\n".format(len(list_of_homes)))
+    # print(len(list_of_homes))
+
+    for h in checkpoints:
+        if h in list_of_homes:
             drop_off = str(h) + ' ' + str(h)
+            # print(drop_off + '\n')
             file.write("{0}\n".format(drop_off))
 
     file.close()
 
 for i in [50]:
     (G, homes, start_node) = create_graph(f'{i}.in')
+    original_homes = homes.copy()
     path = get_shortest_path(G, start_node, homes)
-    write_output_file(path, i, start_node)
+    write_output_file(path, i, start_node, original_homes)
