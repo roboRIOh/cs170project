@@ -27,11 +27,42 @@ def create_graph(filename):
     nx.draw(graph)
     plt.savefig("filename.png")
 
-    return graph
+    return graph, home_names, starting_point
 
-def shortest_paths(G):
-    paths = nx.shortest_path(G, 1, 20)
-    print(paths)
+def shortest_paths(G, start_node):
+    paths = nx.shortest_path(G, start_node)
+    return paths
 
-G = create_graph('50.in')
-shortest_paths(G)
+def get_shortest_path(G, start_node, homes):
+    origin = start_node
+    path = [start_node]
+    while homes != []:
+        temp_paths = shortest_paths(G, start_node)
+        for p in temp_paths:
+            destination = temp_paths[p][-1]
+            if (destination in homes):
+                path.extend(temp_paths[p][1:])
+                homes.remove(destination)
+                start_node = destination
+                break;
+    path.append(origin)
+    return path
+
+def write_output_file(path, size):
+    path_str_list = [str(p) for p in path]
+    path_str = ' '.join(path_str_list)
+    file = open(f'{size}.out',"w")
+    file.write("{0}\n".format(path_str))
+    print(path_str)
+    file.write("{0}\n".format(len(path) - 2))
+    print(len(path) - 2)
+    for i in range(1, len(path) - 1):
+        drop_off = str(path_str_list[i])
+        file.write("{0} {0}\n".format(drop_off))
+        print(drop_off)
+    file.close()
+
+for i in [50, 100, 200]:
+    (G, homes, start_node) = create_graph(f'{i}.in')
+    path = get_shortest_path(G, start_node, homes)
+    write_output_file(path, i)

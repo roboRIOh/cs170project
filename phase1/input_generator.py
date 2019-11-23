@@ -17,7 +17,7 @@ def generate_input(size, x, y):
     list_of_locations = ["{0}".format(i+1) for i in range(size)]
     list_of_homes = []
     while(len(list_of_homes) < num_of_tas):
-        home = list_of_locations[np.random.randint(0,num_of_tas)]
+        home = list_of_locations[np.random.randint(0,size)]
         try:
             list_of_homes.index("{0}".format(home))
         except:
@@ -31,7 +31,6 @@ def generate_input(size, x, y):
     if (size == 50):
         nx.draw(triG)
         plt.savefig("trig.png")
-        print(triAdj)
     adjmat = np.full((size,size),'x')
     for i in range(size):
         for j in range(i):
