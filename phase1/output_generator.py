@@ -15,9 +15,23 @@ def create_graph(filename):
 
     adj_mat = []
     for i in range(5, len(content)):
-        adj_mat.append([h for h in content[i].split()])
+        row = [h for h in content[i].split()]
+        for i in range(len(row)):
+            if row[i] == 'x':
+                row[i] = 0
+            elif row[i] == '1':
+                row[i] = 1
+        adj_mat.append(row)
 
-    graph_tup = su.adjacency_matrix_to_graph(adj_mat)[0]
-    graph = graph_tup[0]
+    graph = su.adjacency_matrix_to_graph(adj_mat)[0]
+    nx.draw(graph)
+    plt.savefig("filename.png")
 
-create_graph('50.in')
+    return graph
+
+def shortest_paths(G):
+    paths = nx.shortest_path(G, 1, 20)
+    print(paths)
+
+G = create_graph('50.in')
+shortest_paths(G)

@@ -1,5 +1,7 @@
 import numpy as np
 import networkx as nx
+import matplotlib.pyplot as plt
+
 
 # Input file format:
 # 1 Number of locations
@@ -22,7 +24,14 @@ def generate_input(size, x, y):
             list_of_homes.append(home)
 
     triG = nx.triangular_lattice_graph(x,y)
+    if (size == 50):
+        nx.draw(triG)
+        plt.savefig("trig.png")
     triAdj = nx.adjacency_matrix(triG).toarray()
+    if (size == 50):
+        nx.draw(triG)
+        plt.savefig("trig.png")
+        print(triAdj)
     adjmat = np.full((size,size),'x')
     for i in range(size):
         for j in range(i):
