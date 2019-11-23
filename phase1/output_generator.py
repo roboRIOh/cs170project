@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
+import dwave_networkx as dnx
 import student_utils as su
 
 def create_graph(filename):
@@ -75,8 +76,9 @@ def write_output_file(path, size, origin, list_of_homes):
 
     file.close()
 
-for i in [50]:
+for i in [200]:
     (G, homes, start_node) = create_graph(f'{i}.in')
     original_homes = homes.copy()
     path = get_shortest_path(G, start_node, homes)
     write_output_file(path, i, start_node, original_homes)
+    print(G.edges())
