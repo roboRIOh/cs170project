@@ -9,11 +9,19 @@ import numpy as np
 import networkx as nx
 import dwave_networkx as dnx
 from student_utils import *
+
+import math
+import random
+from gurobipy import *
+
 """
 ======================================================================
   Complete the following function.
 ======================================================================
 """
+# GLOBAL VARIABLE
+n = 10 # Used in tour optimization
+
 def create_graph(adjacency_matrix):
     graph = adjacency_matrix_to_graph(adjacency_matrix)[0]
     nx.draw(graph)
@@ -40,23 +48,31 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
     """
     home_indices_dict = {} # Dictionary of homes, where each entry is (key=index:value=name of home)
     home_indices = [] # List of indices where homes are located
+    home_indices_and_source = [] # List of indices where homes are located and the source node
     location_indices = [i for i in range(len(list_of_locations))] # List of indices of all locations
     starting_car_index = list_of_locations.index(starting_car_location)
 
     for i in range(len(list_of_locations)):
-        if list_of_locations[i] in list_of_homes:
+        loc = list_of_locations[i]
+        if loc in list_of_homes:
             home_indices_dict[i] = list_of_locations[i]
             home_indices.append(i)
+            home_indices_and_source.append(i)
+        elif loc == starting_car_location:
+            home_indices_and_source.append(i)
+
 
     G = create_graph(adjacency_matrix)
 
     # 2D array where each value shortest_paths[i][j] is the shortest path from i to j where i and j are homes
-    shortest_paths = [[nx.shortest_path(G, i, j) for j in home_indices] for i in home_indices]
+    shortest_paths = [[nx.shortest_path(G, i, j) for j in home_indices_and_source] for i in home_indices_and_source]
 
     # 2D array where each value shortest_path_length[i][j] is the length of the shortest path from i to j where i and j are homes
-    shortest_paths_lengths = [[nx.shortest_path_length(G, i, j) for j in home_indices] for i in home_indices]
+    shortest_paths_lengths = [[nx.shortest_path_length(G, i, j) for j in home_indices_and_source] for i in home_indices_and_source]
 
     print(shortest_paths_lengths)
+    TSP_path = TSP(shortest_paths_lengths)
+    print(TSP_path)
 
     #return car_path, drop_off_dict
     #pass
@@ -111,7 +127,96 @@ def solve_all(input_directory, output_directory, params=[]):
     for input_file in input_files:
         solve_from_file(input_file, output_directory, params=params)
 
+# Gurobi LP TSP solver
+def subtourelim(model, where):
+  if where == GRB.callback.MIPSOL:
+    selected = []
+    # make a list of edges selected in the solution
+    for i in range(n):
+      sol = model.cbGetSolution([model._vars[i,j] for j in range(n)])
+      selected += [(i,j) for j in range(n) if sol[j] > 0.5]
+    # find the shortest cycle in the selected edge list
+    tour = subtour(selected)
+    if len(tour) < n:
+      # add a subtour elimination constraint
+      expr = 0
+      for i in range(len(tour)):
+        for j in range(i+1, len(tour)):
+          expr += model._vars[tour[i], tour[j]]
+      model.cbLazy(expr <= len(tour)-1)
 
+
+# Euclidean distance between two points
+
+def distance(points, i, j):
+  dx = points[i][0] - points[j][0]
+  dy = points[i][1] - points[j][1]
+  return math.sqrt(dx*dx + dy*dy)
+
+
+# Given a list of edges, finds the shortest subtour
+
+def subtour(edges):
+  visited = [False]*n
+  cycles = []
+  lengths = []
+  selected = [[] for i in range(n)]
+  for x,y in edges:
+    selected[x].append(y)
+  while True:
+    current = visited.index(False)
+    thiscycle = [current]
+    while True:
+      visited[current] = True
+      neighbors = [x for x in selected[current] if not visited[x]]
+      if len(neighbors) == 0:
+        break
+      current = neighbors[0]
+      thiscycle.append(current)
+    cycles.append(thiscycle)
+    lengths.append(len(thiscycle))
+    if sum(lengths) == n:
+      break
+  return cycles[lengths.index(min(lengths))]
+
+def TSP(home_distances):
+    # Create variables
+    m = Model()
+    global n
+    n = len(home_distances)
+
+    vars = {}
+    for i in range(n):
+       for j in range(i+1):
+         vars[i,j] = m.addVar(obj=home_distances[i][j], vtype=GRB.BINARY,
+                              name='e'+str(i)+'_'+str(j))
+         vars[j,i] = vars[i,j]
+       m.update()
+
+    # Add degree-2 constraint, and forbid loops
+    for i in range(n):
+      m.addConstr(quicksum(vars[i,j] for j in range(n)) == 2)
+      vars[i,i].ub = 0
+    m.update()
+
+    # Optimize model
+    m._vars = vars
+    m.params.LazyConstraints = 1
+    m.optimize(subtourelim)
+
+    solution = m.getAttr('x', vars)
+    selected = [(i,j) for i in range(n) for j in range(n) if solution[i,j] > 0.5]
+    assert len(subtour(selected)) == n
+    print(selected)
+
+    selected_adjacency_matrix = [[0 for i in range(n)] for i in range(n)]
+    for t in selected:
+        x, y = t
+        selected_adjacency_matrix[x][y] = 1
+        selected_adjacency_matrix[y][x] = 1
+    print('\n'.join(' '.join(str(x) for x in row) for row in selected_adjacency_matrix))
+
+# Main script from CS170 course source code
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Parsing arguments')
     parser.add_argument('--all', action='store_true', help='If specified, the solver is run on all files in the input directory. Else, it is run on just the given input file')
