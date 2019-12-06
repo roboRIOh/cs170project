@@ -58,7 +58,7 @@ def generate_input(size, x, y):
 def set_edge():
     return np.random.randint(0,2)
 
-# generate_input(10,3,3)
-generate_input(50,9,8)
-generate_input(100,19,8)
-generate_input(200,19,18)
+generate_input(10,3,3)
+# generate_input(50,9,8)
+# generate_input(100,19,8)
+# generate_input(200,19,18)

@@ -1,4 +1,6 @@
-# import os
+import math
+import random
+from gurobipy import *
 # import sys
 # sys.path.append('..')
 # sys.path.append('../..')
@@ -92,10 +94,6 @@
 #         input_file = args.input
 #         solve_from_file(input_file, output_directory, params=args.params)
 
-import math
-import random
-from gurobipy import *
-
 
 # Callback - use lazy constraints to eliminate sub-tours
 
@@ -150,45 +148,43 @@ def subtour(edges):
       break
   return cycles[lengths.index(min(lengths))]
 
-n = 50
-
 # Create n random points
+#
+# random.seed(1)
+# points = []
+# for i in range(n):
+#   points.append((random.randint(0,100),random.randint(0,100)))
+#
+# m = Model()
 
-random.seed(1)
-points = []
-for i in range(n):
-  points.append((random.randint(0,100),random.randint(0,100)))
+def TSP(home_distances):
+    # Create variables
 
-m = Model()
-
-
-# Create variables
-
-vars = {}
-for i in range(n):
-   for j in range(i+1):
-     vars[i,j] = m.addVar(obj=distance(points, i, j), vtype=GRB.BINARY,
-                          name='e'+str(i)+'_'+str(j))
-     vars[j,i] = vars[i,j]
-   m.update()
-
-
-# Add degree-2 constraint, and forbid loops
-
-for i in range(n):
-  m.addConstr(quicksum(vars[i,j] for j in range(n)) == 2)
-  vars[i,i].ub = 0
-
-m.update()
+    vars = {}
+    for i in range(n):
+       for j in range(i+1):
+         vars[i,j] = m.addVar(obj=home_distances[i][j], vtype=GRB.BINARY,
+                              name='e'+str(i)+'_'+str(j))
+         vars[j,i] = vars[i,j]
+       m.update()
 
 
-# Optimize model
+    # Add degree-2 constraint, and forbid loops
 
-m._vars = vars
-m.params.LazyConstraints = 1
-m.optimize(subtourelim)
+    for i in range(n):
+      m.addConstr(quicksum(vars[i,j] for j in range(n)) == 2)
+      vars[i,i].ub = 0
 
-solution = m.getAttr('x', vars)
-selected = [(i,j) for i in range(n) for j in range(n) if solution[i,j] > 0.5]
-assert len(subtour(selected)) == n
-print(selected)
+    m.update()
+
+
+    # Optimize model
+
+    m._vars = vars
+    m.params.LazyConstraints = 1
+    m.optimize(subtourelim)
+
+    solution = m.getAttr('x', vars)
+    selected = [(i,j) for i in range(n) for j in range(n) if solution[i,j] > 0.5]
+    assert len(subtour(selected)) == n
+    print(selected)

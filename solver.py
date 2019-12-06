@@ -4,13 +4,26 @@ sys.path.append('..')
 sys.path.append('../..')
 import argparse
 import utils
-
+import matplotlib.pyplot as plt
+import numpy as np
+import networkx as nx
+import dwave_networkx as dnx
 from student_utils import *
 """
 ======================================================================
   Complete the following function.
 ======================================================================
 """
+def create_graph(adjacency_matrix):
+    graph = adjacency_matrix_to_graph(adjacency_matrix)[0]
+    nx.draw(graph)
+    plt.savefig("graph.png")
+
+    return graph
+
+def shortest_path(G, start_node, target):
+    path = nx.shortest_path(G, start_node, target)
+    return path
 
 def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_matrix, params=[]):
     """
@@ -25,7 +38,29 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         A dictionary mapping drop-off location to a list of homes of TAs that got off at that particular location
         NOTE: both outputs should be in terms of indices not the names of the locations themselves
     """
-    pass
+    home_indices_dict = {} # Dictionary of homes, where each entry is (key=index:value=name of home)
+    home_indices = [] # List of indices where homes are located
+    location_indices = [i for i in range(len(list_of_locations))] # List of indices of all locations
+    starting_car_index = list_of_locations.index(starting_car_location)
+
+    for i in range(len(list_of_locations)):
+        if list_of_locations[i] in list_of_homes:
+            home_indices_dict[i] = list_of_locations[i]
+            home_indices.append(i)
+
+    G = create_graph(adjacency_matrix)
+
+    # 2D array where each value shortest_paths[i][j] is the shortest path from i to j where i and j are homes
+    shortest_paths = [[nx.shortest_path(G, i, j) for j in home_indices] for i in home_indices]
+
+    # 2D array where each value shortest_path_length[i][j] is the length of the shortest path from i to j where i and j are homes
+    shortest_paths_lengths = [[nx.shortest_path_length(G, i, j) for j in home_indices] for i in home_indices]
+
+    print(shortest_paths_lengths)
+
+    #return car_path, drop_off_dict
+    #pass
+    return (0, 0)
 
 """
 ======================================================================
@@ -62,12 +97,12 @@ def solve_from_file(input_file, output_directory, params=[]):
     num_of_locations, num_houses, list_locations, list_houses, starting_car_location, adjacency_matrix = data_parser(input_data)
     car_path, drop_offs = solve(list_locations, list_houses, starting_car_location, adjacency_matrix, params=params)
 
-    basename, filename = os.path.split(input_file)
-    if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
-    output_file = utils.input_to_output(input_file, output_directory)
-
-    convertToFile(car_path, drop_offs, output_file, list_locations)
+    # basename, filename = os.path.split(input_file)
+    # if not os.path.exists(output_directory):
+    #     os.makedirs(output_directory)
+    # output_file = utils.input_to_output(input_file, output_directory)
+    #
+    # convertToFile(car_path, drop_offs, output_file, list_locations)
 
 
 def solve_all(input_directory, output_directory, params=[]):
