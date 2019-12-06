@@ -22,10 +22,14 @@ from gurobipy import *
 # GLOBAL VARIABLE
 n = 10 # Used in tour optimization
 
-def create_graph(adjacency_matrix):
+def print_2d_array(array):
+    print('\n'.join(' '.join(str(x) for x in row) for row in array))
+
+def create_graph(adjacency_matrix, name):
     graph = adjacency_matrix_to_graph(adjacency_matrix)[0]
     nx.draw(graph)
-    plt.savefig("graph.png")
+    plt.savefig(f'{name}.png')
+    plt.clf()
 
     return graph
 
@@ -61,18 +65,45 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         elif loc == starting_car_location:
             home_indices_and_source.append(i)
 
-
-    G = create_graph(adjacency_matrix)
+    print('homes')
+    print(home_indices)
+    G = create_graph(adjacency_matrix, 'graph')
+    print_2d_array(adjacency_matrix)
 
     # 2D array where each value shortest_paths[i][j] is the shortest path from i to j where i and j are homes
     shortest_paths = [[nx.shortest_path(G, i, j) for j in home_indices_and_source] for i in home_indices_and_source]
-
+    print_2d_array(shortest_paths)
     # 2D array where each value shortest_path_length[i][j] is the length of the shortest path from i to j where i and j are homes
     shortest_paths_lengths = [[nx.shortest_path_length(G, i, j) for j in home_indices_and_source] for i in home_indices_and_source]
 
-    print(shortest_paths_lengths)
+    print_2d_array(shortest_paths_lengths)
     TSP_path = TSP(shortest_paths_lengths)
-    print(TSP_path)
+    selected_adjacency_matrix = [[0 for i in range(n)] for i in range(n)]
+    TSP_shortest_paths = [[[] for i in range(n)] for i in range(n)]
+    for t in TSP_path:
+        x, y = t
+        selected_adjacency_matrix[x][y] = 1
+        selected_adjacency_matrix[y][x] = 1
+        TSP_shortest_paths[x][y] = shortest_paths[x][y]
+        TSP_shortest_paths[y][x] = shortest_paths[y][x]
+    print_2d_array(selected_adjacency_matrix)
+    print_2d_array(TSP_shortest_paths)
+
+    TSP_shortest_paths_am = [['x' for i in range(len(adjacency_matrix))] for i in range(len(adjacency_matrix))]
+    for i in range(len(TSP_shortest_paths)):
+        for j in range(len(TSP_shortest_paths)):
+            path = TSP_shortest_paths[i][j]
+            p_length = len(TSP_shortest_paths[i][j])
+            if p_length > 1:
+                for x in range(p_length - 1):
+                    node_1 = path[x]
+                    node_2 = path[x + 1]
+                    TSP_shortest_paths_am[node_1][node_2] = adjacency_matrix[node_1][node_2]
+    print_2d_array(TSP_shortest_paths_am)
+
+    G_path = create_graph(TSP_shortest_paths_am, 'path')
+    G_path_DFS = list(nx.dfs_edges(G_path, source=starting_car_index))
+    print(G_path_DFS)
 
     #return car_path, drop_off_dict
     #pass
@@ -207,14 +238,7 @@ def TSP(home_distances):
     solution = m.getAttr('x', vars)
     selected = [(i,j) for i in range(n) for j in range(n) if solution[i,j] > 0.5]
     assert len(subtour(selected)) == n
-    print(selected)
-
-    selected_adjacency_matrix = [[0 for i in range(n)] for i in range(n)]
-    for t in selected:
-        x, y = t
-        selected_adjacency_matrix[x][y] = 1
-        selected_adjacency_matrix[y][x] = 1
-    print('\n'.join(' '.join(str(x) for x in row) for row in selected_adjacency_matrix))
+    return selected
 
 # Main script from CS170 course source code
 if __name__=="__main__":
