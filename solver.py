@@ -33,19 +33,8 @@ def blockPrint():
 def enablePrint():
     sys.stdout = sys.__stdout__
 
-def vertex_path(adjmat):
-  G = create_graph(adjmat, 'graph')
-  edgelist = list(nx.dfs_edges(G, source=starting_car_index))
-  vertexlist = [starting_car_index]
-  # return G,[starting_car_index] + [i[1] for i in edgelist] + [starting_car_index]
-  return G, edgelist
-
 def create_graph(adjacency_matrix, name):
     graph = adjacency_matrix_to_graph(adjacency_matrix)[0]
-    nx.draw(graph)
-    plt.savefig(f'{name}.png')
-    plt.clf()
-
     return graph
 
 def shortest_path(G, start_node, target):
@@ -129,17 +118,17 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         print('home_cycle')
         print(home_cycle)
 
-        TSP_shortest_paths_am = [['x' for i in range(len(adjacency_matrix))] for i in range(len(adjacency_matrix))]
-        for i in range(len(TSP_shortest_paths)):
-            for j in range(len(TSP_shortest_paths)):
-                path = TSP_shortest_paths[i][j]
-                p_length = len(TSP_shortest_paths[i][j])
-                if p_length > 1:
-                    for x in range(p_length - 1):
-                        node_1 = path[x]
-                        node_2 = path[x + 1]
-                        TSP_shortest_paths_am[node_1][node_2] = adjacency_matrix[node_1][node_2]
-        print_2d_array(TSP_shortest_paths_am)
+        # TSP_shortest_paths_am = [['x' for i in range(len(adjacency_matrix))] for i in range(len(adjacency_matrix))]
+        # for i in range(len(TSP_shortest_paths)):
+        #     for j in range(len(TSP_shortest_paths)):
+        #         path = TSP_shortest_paths[i][j]
+        #         p_length = len(TSP_shortest_paths[i][j])
+        #         if p_length > 1:
+        #             for x in range(p_length - 1):
+        #                 node_1 = path[x]
+        #                 node_2 = path[x + 1]
+        #                 TSP_shortest_paths_am[node_1][node_2] = adjacency_matrix[node_1][node_2]
+        # print_2d_array(TSP_shortest_paths_am)
 
         shortest_path_expanded = []
         for xy in home_cycle:
@@ -159,7 +148,7 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
 
         # enablePrint()
 
-        
+
         sol_path = solution_path
         i = 0
         while (i != len(sol_path)-1 and i != -1):
@@ -197,7 +186,7 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
             if (not sol_path[i][0] in drop_off_dict):
                 drop_off_dict[sol_path[i][0]] = [sol_path[i][0]]
 
-        
+
 
         car_path = [starting_car_index]
         for i in sol_path:
@@ -294,7 +283,7 @@ def solve_from_file(input_file, output_directory, params=[]):
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
     output_file = utils.input_to_output(input_file, output_directory)
-    
+
     convertToFile(car_path, drop_offs, output_file, list_locations)
 
 
@@ -308,7 +297,7 @@ def solve_all(input_directory, output_directory, params=[]):
         print("Currently Solving:", i, " / ", l, " : ", input_file)
         i += 1
         ofile = "outputs/" + input_file[7:-2] + "out"
-        if (not os.path.isfile(ofile)): 
+        if (not os.path.isfile(ofile)):
             solve_from_file(input_file, output_directory, params=params)
 
 
