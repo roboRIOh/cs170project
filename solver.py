@@ -10,6 +10,7 @@ import numpy as np
 import networkx as nx
 import dwave_networkx as dnx
 from student_utils import *
+from output_validator import *
 
 import math
 import random
@@ -118,18 +119,6 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         print('home_cycle')
         print(home_cycle)
 
-        # TSP_shortest_paths_am = [['x' for i in range(len(adjacency_matrix))] for i in range(len(adjacency_matrix))]
-        # for i in range(len(TSP_shortest_paths)):
-        #     for j in range(len(TSP_shortest_paths)):
-        #         path = TSP_shortest_paths[i][j]
-        #         p_length = len(TSP_shortest_paths[i][j])
-        #         if p_length > 1:
-        #             for x in range(p_length - 1):
-        #                 node_1 = path[x]
-        #                 node_2 = path[x + 1]
-        #                 TSP_shortest_paths_am[node_1][node_2] = adjacency_matrix[node_1][node_2]
-        # print_2d_array(TSP_shortest_paths_am)
-
         shortest_path_expanded = []
         for xy in home_cycle:
             x, y = xy
@@ -145,9 +134,6 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         for i in range(len(concat)-1):
             solution_path.append((concat[i],concat[i+1]))
         print(solution_path)
-
-        # enablePrint()
-
 
         sol_path = solution_path
         i = 0
@@ -203,47 +189,6 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
 
     return car_path, drop_off_dict
 
-
-    # walk_tot = 0
-    # drop_off_dict = {}
-    # ph = TSP_path_of_homes
-    # pl = TSP_path_includ_loc_between
-    # Gh = G_homes
-    # Gl = G_locs
-    # h = 1 #indicies counter for ph
-    # l = 1 #indicies counter for pl
-    # while(h != len(ph) - 1):
-    #     curr_to_next = nx.shortest_path_length(Gl,source=pl[l],target=pl[l+1])
-    #     prev_to_curr = nx.shortest_path_length(Gl,source=pl[l-1],target=pl[l])
-    #     next_to_prev = nx.shortest_path_length(Gl,source=pl[l+1],target=pl[l-1])
-    #     print("ph:")
-    #     print(ph)
-    #     print("pl:")
-    #     print(pl)
-    #     if (curr_to_next >= next_to_prev + prev_to_curr):
-    #         ph[h+1] = pl[l-1]
-    #         if (pl[l-1] in drop_off_dict):
-    #             drop_off_dict[pl[l-1]].append(pl[l])
-    #         else:
-    #             drop_off_dict[pl[l-1]] = [pl[l]]
-    #         if (pl[l] in drop_off_dict):
-    #             drop_off_dict[pl[l-1]].append(drop_off_dict.get(pl[l]))
-    #         walk_tot += next_to_prev + prev_to_curr
-
-    #         ph_new = [starting_car_index]
-    #         for i in range(len(ph)-1):
-    #             if (ph[i] in list_of_homes and ph[i+1] in list_of_homes):
-    #                 ph_new += shortest_paths[ph[i]][ph[i+1]][1:]
-    #             else:
-    #                 ph_new += nx.shortest_path(Gl,ph[i],ph[i+1])[1:]
-    #         ph = ph_new.copy()
-
-    #         if (ph[h] == ph[h+1]):
-    #             ph.pop(h+1)
-    #     else:
-    #         l += 1
-    #         if (ph[l] in ph):
-    #           h += 1
 """
 ======================================================================
    No need to change any code below this line
@@ -286,20 +231,50 @@ def solve_from_file(input_file, output_directory, params=[]):
 
     convertToFile(car_path, drop_offs, output_file, list_locations)
 
-
 def solve_all(input_directory, output_directory, params=[]):
     input_files = utils.get_files_with_extension(input_directory, 'in')
+    output_files = utils.get_files_with_extension(output_directory, 'out')
 
     i = 0
-    l = len(input_files)
+    l = len(input_files) - len(output_files)
     for input_file in input_files:
-        enablePrint()
-        print("Currently Solving:", i, " / ", l, " : ", input_file)
         i += 1
         ofile = "outputs/" + input_file[7:-2] + "out"
-        if (not os.path.isfile(ofile)):
+        if (ofile not in output_files):
+            print("Currently Solving:", i, " / ", l, " : ", input_file)
             solve_from_file(input_file, output_directory, params=params)
+            cost = validate_output(input_file, ofile, params)
+            if cost == 'infinite':
+                print('***initially invalid***')
+                hard_solve(input_file, output_directory)
+                print('hard solve')
+            cost = validate_output(input_file, ofile, params)
+            print(cost)
 
+
+def hard_solve(input_file, output_directory):
+    input_data = utils.read_file(input_file)
+    num_of_locations, num_houses, list_locations, list_houses, starting_car_location, adjacency_matrix = data_parser(input_data)
+    car_path = [list_locations.index(starting_car_location)]
+    drop_offs = {}
+    drop_offs[list_locations.index(starting_car_location)] = [list_locations.index(i) for i in list_houses]
+    basename, filename = os.path.split(input_file)
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+    output_file = utils.input_to_output(input_file, output_directory)
+
+    convertToFile(car_path, drop_offs, output_file, list_locations)
+
+def validate_output(input_file, output_file, params=[]):
+    print('Processing', input_file)
+
+    input_data = utils.read_file(input_file)
+    output_data = utils.read_file(output_file)
+
+    input_message, input_error = input_validator.tests(input_file)
+    cost, message = tests(input_data, output_data, params=params)
+
+    return cost
 
 # Gurobi LP TSP solver
 def subtourelim(model, where):

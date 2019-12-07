@@ -10,7 +10,7 @@ import input_validator
 
 
 def validate_output(input_file, output_file, params=[]):
-    print('Processing', input_file)
+    print('Validating', input_file)
 
     input_data = utils.read_file(input_file)
     output_data = utils.read_file(output_file)
@@ -19,9 +19,11 @@ def validate_output(input_file, output_file, params=[]):
     cost, message = tests(input_data, output_data, params=params)
     message = 'Comments about input file:\n\n' + input_message + 'Comments about output file:\n\n' + message
 
-    print(message)
+    # print(message)
     if input_error:
         return input_error, 'infinite', input_message + 'Since this input is invalid, you will not receive a score for its output.\n'
+    if cost == 'infinite':
+        print(input_file + ' INVALID :(')
     return input_error, cost, message
 
 
@@ -29,10 +31,19 @@ def validate_all_outputs(input_directory, output_directory, params=[]):
     input_files = utils.get_files_with_extension(input_directory, '.in')
     output_files = utils.get_files_with_extension(output_directory, '.out')
 
+    input_files.remove('inputs/194_100.in')
+    output_files.remove('outputs/194_100.out')
+
+    input_files.sort()
+
     all_results = []
+    l = len(output_files)
     for input_file in input_files:
+        print(l)
+        print('Processing', input_file)
+        l -= 1
         output_file = utils.input_to_output(input_file, output_directory)
-        print(input_file, output_file)
+        # print(input_file, output_file)
         if output_file not in output_files:
             print(f'No corresponding .out file for {input_file}')
             results = (None, None, f'No corresponding .out file for {input_file}')
