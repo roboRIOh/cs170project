@@ -20,8 +20,8 @@ def create_graph(filename):
         for i in range(len(row)):
             if row[i] == 'x':
                 row[i] = 0
-            elif row[i] == '1':
-                row[i] = 1
+            else:
+                row[i] = int(row[i])
         adj_mat.append(row)
 
     graph = su.adjacency_matrix_to_graph(adj_mat)[0]

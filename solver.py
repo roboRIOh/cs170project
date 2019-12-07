@@ -2,6 +2,7 @@ import os
 import sys
 sys.path.append('..')
 sys.path.append('../..')
+sys.path.append('/Library/Python/2.7/site-packages/')
 import argparse
 import utils
 import matplotlib.pyplot as plt
@@ -21,9 +22,17 @@ from gurobipy import *
 """
 # GLOBAL VARIABLE
 n = 10 # Used in tour optimization
+starting_car_index = 0
 
 def print_2d_array(array):
     print('\n'.join(' '.join(str(x) for x in row) for row in array))
+  
+def vertex_path(adjmat):
+  G = create_graph(adjmat, 'graph')
+  edgelist = list(nx.dfs_edges(G, source=starting_car_index))
+  vertexlist = [starting_car_index]
+  # return G,[starting_car_index] + [i[1] for i in edgelist] + [starting_car_index]
+  return G, edgelist
 
 def create_graph(adjacency_matrix, name):
     graph = adjacency_matrix_to_graph(adjacency_matrix)[0]
@@ -54,6 +63,7 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
     home_indices = [] # List of indices where homes are located
     home_indices_and_source = [] # List of indices where homes are located and the source node
     location_indices = [i for i in range(len(list_of_locations))] # List of indices of all locations
+    global starting_car_index
     starting_car_index = list_of_locations.index(starting_car_location)
 
     for i in range(len(list_of_locations)):
@@ -67,6 +77,14 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
 
     print('homes')
     print(home_indices)
+    print(home_indices_dict)
+
+    home_to_home_indicies_dict = {}
+    for i in range(len(list_of_homes)):
+      home_to_home_indicies_dict[i] = home_indices[i]
+
+    print(home_to_home_indicies_dict)
+
     G = create_graph(adjacency_matrix, 'graph')
     print_2d_array(adjacency_matrix)
 
@@ -77,7 +95,8 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
     shortest_paths_lengths = [[nx.shortest_path_length(G, i, j) for j in home_indices_and_source] for i in home_indices_and_source]
 
     print_2d_array(shortest_paths_lengths)
-    TSP_path = TSP(shortest_paths_lengths)
+    sol,TSP_path = TSP(shortest_paths_lengths)
+    print("asdf",TSP_path)
     selected_adjacency_matrix = [[0 for i in range(n)] for i in range(n)]
     TSP_shortest_paths = [[[] for i in range(n)] for i in range(n)]
     for t in TSP_path:
@@ -87,7 +106,15 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         TSP_shortest_paths[x][y] = shortest_paths[x][y]
         TSP_shortest_paths[y][x] = shortest_paths[y][x]
     print_2d_array(selected_adjacency_matrix)
+    print("TSP_shortest_paths")
     print_2d_array(TSP_shortest_paths)
+
+    G_homes, TSP_path_of_homes = vertex_path(selected_adjacency_matrix)
+    print("vertex_path",TSP_path_of_homes)
+    # TSP_path_of_homes = [home_to_home_indicies_dict.get(i[0]) for i in TSP_path_of_homes]
+    # print(TSP_path_of_homes)
+
+
 
     TSP_shortest_paths_am = [['x' for i in range(len(adjacency_matrix))] for i in range(len(adjacency_matrix))]
     for i in range(len(TSP_shortest_paths)):
@@ -101,9 +128,58 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
                     TSP_shortest_paths_am[node_1][node_2] = adjacency_matrix[node_1][node_2]
     print_2d_array(TSP_shortest_paths_am)
 
-    G_path = create_graph(TSP_shortest_paths_am, 'path')
-    G_path_DFS = list(nx.dfs_edges(G_path, source=starting_car_index))
-    print(G_path_DFS)
+    G_locs,TSP_path_includ_loc_between = vertex_path(TSP_shortest_paths_am)
+    print("tsp sol path:")
+    print(TSP_path_includ_loc_between)
+
+    # walk_tot = 0
+    # drop_off_dict = {}
+    # ph = TSP_path_of_homes
+    # pl = TSP_path_includ_loc_between
+    # Gh = G_homes
+    # Gl = G_locs
+    # h = 1 #indicies counter for ph
+    # l = 1 #indicies counter for pl
+    # while(h != len(ph) - 1):
+    #     curr_to_next = nx.shortest_path_length(Gl,source=pl[l],target=pl[l+1])
+    #     prev_to_curr = nx.shortest_path_length(Gl,source=pl[l-1],target=pl[l]) 
+    #     next_to_prev = nx.shortest_path_length(Gl,source=pl[l+1],target=pl[l-1]) 
+    #     print("ph:")
+    #     print(ph)
+    #     print("pl:")
+    #     print(pl)
+    #     if (curr_to_next >= next_to_prev + prev_to_curr):
+    #         ph[h+1] = pl[l-1]
+    #         if (pl[l-1] in drop_off_dict):
+    #             drop_off_dict[pl[l-1]].append(pl[l])
+    #         else:
+    #             drop_off_dict[pl[l-1]] = [pl[l]]
+    #         if (pl[l] in drop_off_dict):
+    #             drop_off_dict[pl[l-1]].append(drop_off_dict.get(pl[l]))
+    #         walk_tot += next_to_prev + prev_to_curr
+
+    #         ph_new = [starting_car_index]
+    #         for i in range(len(ph)-1):
+    #             if (ph[i] in list_of_homes and ph[i+1] in list_of_homes):
+    #                 ph_new += shortest_paths[ph[i]][ph[i+1]][1:]
+    #             else:
+    #                 ph_new += nx.shortest_path(Gl,ph[i],ph[i+1])[1:]
+    #         ph = ph_new.copy()
+
+    #         if (ph[h] == ph[h+1]):
+    #             ph.pop(h+1)
+    #     else:
+    #         l += 1
+    #         if (ph[l] in ph):
+    #           h += 1
+            
+            
+            
+
+              
+    
+
+ 
 
     #return car_path, drop_off_dict
     #pass
@@ -238,7 +314,7 @@ def TSP(home_distances):
     solution = m.getAttr('x', vars)
     selected = [(i,j) for i in range(n) for j in range(n) if solution[i,j] > 0.5]
     assert len(subtour(selected)) == n
-    return selected
+    return solution,selected
 
 # Main script from CS170 course source code
 if __name__=="__main__":
