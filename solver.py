@@ -26,7 +26,7 @@ starting_car_index = 0
 
 def print_2d_array(array):
     print('\n'.join(' '.join(str(x) for x in row) for row in array))
-  
+
 def vertex_path(adjmat):
   G = create_graph(adjmat, 'graph')
   edgelist = list(nx.dfs_edges(G, source=starting_car_index))
@@ -45,6 +45,10 @@ def create_graph(adjacency_matrix, name):
 def shortest_path(G, start_node, target):
     path = nx.shortest_path(G, start_node, target)
     return path
+
+def construct_cycle(adjacency_matrix, source):
+    # Given an adjacency matrix of a TSP solution, output a possible cycle to take
+    return nx.find_cycle(adjacency_matrix_to_graph(adjacency_matrix)[0], source)
 
 def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_matrix, params=[]):
     """
@@ -65,6 +69,7 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
     location_indices = [i for i in range(len(list_of_locations))] # List of indices of all locations
     global starting_car_index
     starting_car_index = list_of_locations.index(starting_car_location)
+    starting_car_index_TSP = 0
 
     for i in range(len(list_of_locations)):
         loc = list_of_locations[i]
@@ -74,6 +79,7 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
             home_indices_and_source.append(i)
         elif loc == starting_car_location:
             home_indices_and_source.append(i)
+            starting_car_index = home_indices_and_source.index(i)
 
     print('homes')
     print(home_indices)
@@ -109,12 +115,9 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
     print("TSP_shortest_paths")
     print_2d_array(TSP_shortest_paths)
 
-    G_homes, TSP_path_of_homes = vertex_path(selected_adjacency_matrix)
-    print("vertex_path",TSP_path_of_homes)
-    # TSP_path_of_homes = [home_to_home_indicies_dict.get(i[0]) for i in TSP_path_of_homes]
-    # print(TSP_path_of_homes)
-
-
+    home_cycle = construct_cycle(selected_adjacency_matrix, starting_car_index_TSP)
+    print('home_cycle')
+    print(home_cycle)
 
     TSP_shortest_paths_am = [['x' for i in range(len(adjacency_matrix))] for i in range(len(adjacency_matrix))]
     for i in range(len(TSP_shortest_paths)):
@@ -128,9 +131,12 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
                     TSP_shortest_paths_am[node_1][node_2] = adjacency_matrix[node_1][node_2]
     print_2d_array(TSP_shortest_paths_am)
 
-    G_locs,TSP_path_includ_loc_between = vertex_path(TSP_shortest_paths_am)
-    print("tsp sol path:")
-    print(TSP_path_includ_loc_between)
+    shortest_path_expanded = []
+    for xy in home_cycle:
+        x, y = xy
+        shortest_path_expanded.append(TSP_shortest_paths[x][y])
+    print('shortest path expanded')
+    print(shortest_path_expanded)
 
     # walk_tot = 0
     # drop_off_dict = {}
@@ -142,8 +148,8 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
     # l = 1 #indicies counter for pl
     # while(h != len(ph) - 1):
     #     curr_to_next = nx.shortest_path_length(Gl,source=pl[l],target=pl[l+1])
-    #     prev_to_curr = nx.shortest_path_length(Gl,source=pl[l-1],target=pl[l]) 
-    #     next_to_prev = nx.shortest_path_length(Gl,source=pl[l+1],target=pl[l-1]) 
+    #     prev_to_curr = nx.shortest_path_length(Gl,source=pl[l-1],target=pl[l])
+    #     next_to_prev = nx.shortest_path_length(Gl,source=pl[l+1],target=pl[l-1])
     #     print("ph:")
     #     print(ph)
     #     print("pl:")
@@ -172,14 +178,14 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
     #         l += 1
     #         if (ph[l] in ph):
     #           h += 1
-            
-            
-            
 
-              
-    
 
- 
+
+
+
+
+
+
 
     #return car_path, drop_off_dict
     #pass
