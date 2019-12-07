@@ -160,7 +160,7 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         
         sol_path = solution_path
         i = 0
-        while (i != len(sol_path)-2 and i != -2):
+        while (i != len(sol_path)-1 and i != -1):
             # print(sol_path[i][0], sol_path[i+1][1])
             print(i,len(sol_path),sol_path)
             if (sol_path[i][0] == sol_path[i+1][1]):
@@ -185,7 +185,8 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
                 sol_path = sol_path_new.copy()
                 i -= 1
             else:
-                if (sol_path[i][0] in home_indices_dict):
+                print(sol_path[i][0], sol_path[i][0] in home_indices)
+                if (sol_path[i][0] in home_indices):
                     if (not sol_path[i][0] in drop_off_dict):
                         drop_off_dict[sol_path[i][0]] = [sol_path[i][0]]
                 i += 1
