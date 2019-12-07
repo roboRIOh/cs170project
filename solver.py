@@ -86,11 +86,13 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
             home_indices_dict[i] = list_of_locations[i]
             home_indices.append(i)
             home_indices_and_source.append(i)
-        elif loc == starting_car_location:
+            if loc == starting_car_location:
+                starting_car_index_TSP = home_indices_and_source.index(i)
+        if loc == starting_car_location and loc not in home_indices:
             home_indices_and_source.append(i)
             starting_car_index_TSP = home_indices_and_source.index(i)
 
-    print(starting_car_index)
+    print(starting_car_index, starting_car_index_TSP)
     print('homes')
     print(home_indices)
     print(home_indices_dict)
@@ -306,8 +308,8 @@ def solve_all(input_directory, output_directory, params=[]):
         print("Currently Solving:", i, " / ", l, " : ", input_file)
         i += 1
         ofile = "outputs/" + input_file[7:-2] + "out"
-        if (not os.path.isfile(ofile)): 
-            solve_from_file(input_file, output_directory, params=params)
+        # if (not os.path.isfile(ofile)): 
+        solve_from_file(input_file, output_directory, params=params)
 
 
 # Gurobi LP TSP solver
