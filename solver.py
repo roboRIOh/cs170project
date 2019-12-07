@@ -69,7 +69,7 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         A dictionary mapping drop-off location to a list of homes of TAs that got off at that particular location
         NOTE: both outputs should be in terms of indices not the names of the locations themselves
     """
-    # blockPrint()
+    blockPrint()
 
     home_indices_dict = {} # Dictionary of homes, where each entry is (key=index:value=name of home)
     home_indices = [] # List of indices where homes are located
@@ -162,9 +162,9 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
         i = 0
         while (i != len(sol_path)-1 and i != -1):
             # print(sol_path[i][0], sol_path[i+1][1])
-            print(i,len(sol_path),sol_path)
+            print(i,len(sol_path))
             if (sol_path[i][0] == sol_path[i+1][1]):
-                print(i, len(sol_path))
+                # print(i, len(sol_path))
                 if (len(sol_path) == 2):
                     sol_path_new = [(starting_car_index,starting_car_index)]
                 else:
@@ -185,11 +185,15 @@ def solve(list_of_locations, list_of_homes, starting_car_location, adjacency_mat
                 sol_path = sol_path_new.copy()
                 i -= 1
             else:
-                print(sol_path[i][0], sol_path[i][0] in home_indices)
+                # print(sol_path[i][0], sol_path[i][0] in home_indices)
                 if (sol_path[i][0] in home_indices):
                     if (not sol_path[i][0] in drop_off_dict):
                         drop_off_dict[sol_path[i][0]] = [sol_path[i][0]]
                 i += 1
+        print(i, len(sol_path))
+        if (sol_path[i][0] in home_indices):
+            if (not sol_path[i][0] in drop_off_dict):
+                drop_off_dict[sol_path[i][0]] = [sol_path[i][0]]
 
         
 
@@ -304,6 +308,7 @@ def solve_all(input_directory, output_directory, params=[]):
         ofile = "outputs/" + input_file[7:-2] + "out"
         if (not os.path.isfile(ofile)): 
             solve_from_file(input_file, output_directory, params=params)
+
 
 # Gurobi LP TSP solver
 def subtourelim(model, where):
