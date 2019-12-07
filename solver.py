@@ -308,8 +308,8 @@ def solve_all(input_directory, output_directory, params=[]):
         print("Currently Solving:", i, " / ", l, " : ", input_file)
         i += 1
         ofile = "outputs/" + input_file[7:-2] + "out"
-        # if (not os.path.isfile(ofile)): 
-        solve_from_file(input_file, output_directory, params=params)
+        if (not os.path.isfile(ofile)): 
+            solve_from_file(input_file, output_directory, params=params)
 
 
 # Gurobi LP TSP solver
